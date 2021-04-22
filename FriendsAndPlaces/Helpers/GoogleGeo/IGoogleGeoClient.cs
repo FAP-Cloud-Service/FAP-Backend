@@ -1,4 +1,4 @@
-﻿using FriendsAndPlaces.Models;
+﻿using FriendsAndPlaces.Models.Coordinates;
 
 namespace FriendsAndPlaces.Helpers.GoogleGeo
 {

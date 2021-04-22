@@ -1,8 +1,10 @@
 ﻿using FriendsAndPlaces.Configuration;
-using FriendsAndPlaces.Models;
+using FriendsAndPlaces.Models.Coordinates;
 using FriendsAndPlaces.Models.Entities;
+using FriendsAndPlaces.Models.Users;
 using Microsoft.Azure.Cosmos.Table;
 using System;
+using System.Collections.Generic;
 
 namespace FriendsAndPlaces.Helpers.Database
 {
@@ -20,6 +22,176 @@ namespace FriendsAndPlaces.Helpers.Database
         }
 
         #region Users
+
+        public bool CreateUser(User user)
+        {
+            var cloudTableClient = _cloudStorageAccount.CreateCloudTableClient(new TableClientConfiguration());
+
+            var cloudTable = cloudTableClient.GetTableReference(USERS_TABLE_NAME);
+            if (!cloudTable.Exists())
+            {
+                // Create table
+                cloudTable.Create();
+            }
+
+            // Insert data
+            try
+            {
+                // Create table entity
+                var userEntity = new UserEntity(user.LoginName)
+                {
+                    LoginName = user.LoginName,
+                    Password = user.Password.Password,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Street = user.Street,
+                    City = user.City,
+                    PostalCode = user.PostalCode,
+                    Country = user.Country,
+                    Phone = user.Phone,
+                    Email = user.Email.Email
+                };
+
+                // Create the InsertOrReplace table operation
+                var tableOperation = TableOperation.InsertOrReplace(userEntity);
+
+                // Execute the operation
+                var result = ExecuteOperation(cloudTable, tableOperation);
+
+                if (result.HttpStatusCode == 204)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (StorageException e)
+            {
+                Console.WriteLine(e.Message);
+                return false;
+            }
+        }
+
+        public User GetUser(string loginName)
+        {
+            var cloudTableClient = _cloudStorageAccount.CreateCloudTableClient(new TableClientConfiguration());
+
+            var cloudTable = cloudTableClient.GetTableReference(USERS_TABLE_NAME);
+            if (!cloudTable.Exists())
+            {
+                Console.WriteLine($"Table {USERS_TABLE_NAME} does not exist");
+                return null;
+            }
+
+            // Get data
+            try
+            {
+                var tableOperation = TableOperation.Retrieve<UserEntity>(loginName, loginName);
+
+                var result = ExecuteOperation(cloudTable, tableOperation);
+
+                var userEntity = result.Result as UserEntity;
+
+                if (userEntity != null)
+                {
+                    return new User()
+                    {
+                        LoginName = userEntity.LoginName,
+                        Password = new PasswordWrapper()
+                        {
+                            Password = userEntity.Password
+                        },
+                        FirstName = userEntity.FirstName,
+                        LastName = userEntity.LastName,
+                        Street = userEntity.Street,
+                        PostalCode = userEntity.PostalCode,
+                        City = userEntity.City,
+                        Country = userEntity.Country,
+                        Phone = userEntity.Phone,
+                        Email = new EmailWrapper()
+                        {
+                            Email = userEntity.Email
+                        }
+                    };
+                }
+
+                return null;
+            }
+            catch (StorageException e)
+            {
+                Console.WriteLine(e.Message);
+                return null; ;
+            }
+        }
+
+        public User[] GetAllUsers()
+        {
+            var cloudTableClient = _cloudStorageAccount.CreateCloudTableClient(new TableClientConfiguration());
+
+            var cloudTable = cloudTableClient.GetTableReference(USERS_TABLE_NAME);
+            if (!cloudTable.Exists())
+            {
+                Console.WriteLine($"Table {USERS_TABLE_NAME} does not exist");
+                return null;
+            }
+
+            // Get data
+            try
+            {
+                // From: https://stackoverflow.com/questions/23940246/how-to-get-all-rows-in-azure-table-storage-in-c
+
+                TableContinuationToken token = null;
+                var userEntities = new List<UserEntity>();
+                do
+                {
+                    var queryResult = cloudTable.ExecuteQuerySegmented(new TableQuery<UserEntity>(), token);
+                    userEntities.AddRange(queryResult.Results);
+                    token = queryResult.ContinuationToken;
+                } while (token != null);
+
+                if (userEntities.Count > 0)
+                {
+                    // Transform UserEntity objects to User objects
+
+                    var users = new List<User>();
+
+                    foreach (var userEntity in userEntities)
+                    {
+                        users.Add(new User()
+                        {
+                            LoginName = userEntity.LoginName,
+                            Password = new PasswordWrapper()
+                            {
+                                Password = userEntity.Password
+                            },
+                            FirstName = userEntity.FirstName,
+                            LastName = userEntity.LastName,
+                            Street = userEntity.Street,
+                            PostalCode = userEntity.PostalCode,
+                            City = userEntity.City,
+                            Country = userEntity.Country,
+                            Phone = userEntity.Phone,
+                            Email = new EmailWrapper()
+                            {
+                                Email = userEntity.Email
+                            }
+                        });
+                    }
+
+                    return users.ToArray();
+                }
+
+                return null;
+            }
+            catch (StorageException e)
+            {
+                Console.WriteLine(e.Message);
+                return null; ;
+            }
+        }
+
         #endregion Users
 
         #region Sessions
@@ -84,7 +256,7 @@ namespace FriendsAndPlaces.Helpers.Database
                 var tableOperation = TableOperation.Retrieve<SessionEntity>(loginName, loginName);
 
                 var result = ExecuteOperation(cloudTable, tableOperation);
-                
+
                 var sessionEntity = result.Result as SessionEntity;
 
                 if (sessionEntity != null)
@@ -129,7 +301,7 @@ namespace FriendsAndPlaces.Helpers.Database
                 }
 
                 tableOperation = TableOperation.Delete(sessionEntity);
-                
+
                 result = ExecuteOperation(cloudTable, tableOperation);
             }
             catch (StorageException e)
@@ -245,7 +417,7 @@ namespace FriendsAndPlaces.Helpers.Database
         private CloudStorageAccount CreateStorageAccountFromConnectionString(string storageConnectionString)
         {
             CloudStorageAccount storageAccount;
-            
+
             try
             {
                 storageAccount = CloudStorageAccount.Parse(storageConnectionString);

@@ -23,9 +23,11 @@ namespace FriendsAndPlaces
                 ApiKey = googleApiKey
             };
 
+            // For local development use this connection string (connects to local storage emulator)
+            // string connectionString = "UseDevelopmentStorage=true";
+
             // Read connection string from environment variables
-            //string connectionString = Environment.GetEnvironmentVariable(DATABASE_CONNECTION_STRING);
-            string connectionString = "UseDevelopmentStorage=true";
+            string connectionString = Environment.GetEnvironmentVariable(DATABASE_CONNECTION_STRING);
             var databaseConfiguration = new DatabaseConfiguration()
             {
                 ConnectionString = connectionString

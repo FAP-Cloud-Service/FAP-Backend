@@ -1,12 +1,15 @@
-﻿using FriendsAndPlaces.Models;
+﻿using FriendsAndPlaces.Models.Coordinates;
+using FriendsAndPlaces.Models.Users;
 
 namespace FriendsAndPlaces.Helpers.Database
 {
     public interface IDatabaseManager
     {
-        //public void CreateUser();
+        public bool CreateUser(User user);
 
-        //public string GetUser(string loginName);
+        public User GetUser(string loginName);
+
+        public User[] GetAllUsers();
 
         public bool CreateSession(string loginName, string sessionId);
 

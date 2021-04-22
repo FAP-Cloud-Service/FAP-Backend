@@ -8,7 +8,7 @@ namespace FriendsAndPlaces.Models.Entities
         {
 
         }
-        
+
         public SessionEntity(string loginName)
         {
             PartitionKey = loginName;
