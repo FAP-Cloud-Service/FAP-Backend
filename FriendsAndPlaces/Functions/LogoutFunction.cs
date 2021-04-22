@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace FriendsAndPlaces.Functions
 {
-    public static class LogoutFunction
+    public class LogoutFunction
     {
         [FunctionName("Logout")]
-        public static async Task<IActionResult> Run(
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {

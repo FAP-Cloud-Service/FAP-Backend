@@ -24,7 +24,8 @@ namespace FriendsAndPlaces
             };
 
             // Read connection string from environment variables
-            string connectionString = Environment.GetEnvironmentVariable(DATABASE_CONNECTION_STRING);
+            //string connectionString = Environment.GetEnvironmentVariable(DATABASE_CONNECTION_STRING);
+            string connectionString = "UseDevelopmentStorage=true";
             var databaseConfiguration = new DatabaseConfiguration()
             {
                 ConnectionString = connectionString

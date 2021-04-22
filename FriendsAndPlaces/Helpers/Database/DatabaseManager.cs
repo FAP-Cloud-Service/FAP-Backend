@@ -41,6 +41,7 @@ namespace FriendsAndPlaces.Helpers.Database
                 // Create table entity
                 var sessionEntity = new SessionEntity(loginName)
                 {
+                    LoginName = loginName,
                     SessionId = sessionId
                 };
 
@@ -50,7 +51,7 @@ namespace FriendsAndPlaces.Helpers.Database
                 // Execute the operation
                 var result = ExecuteOperation(cloudTable, tableOperation);
 
-                if (result.HttpStatusCode == 200)
+                if (result.HttpStatusCode == 204)
                 {
                     return true;
                 }
@@ -160,6 +161,7 @@ namespace FriendsAndPlaces.Helpers.Database
                 // Create table entity
                 var locationEntity = new LocationEntity(loginName)
                 {
+                    LoginName = loginName,
                     Latitude = latitude,
                     Longitude = longitude
                 };
@@ -232,7 +234,7 @@ namespace FriendsAndPlaces.Helpers.Database
 
             if (result.RequestCharge.HasValue)
             {
-                Console.WriteLine("Request Charge of Retrieve Operation: " + result.RequestCharge);
+                Console.WriteLine("Request Charge of operation: " + result.RequestCharge);
             }
 
             Console.WriteLine($"HttpStatusCode: {result.HttpStatusCode}");
