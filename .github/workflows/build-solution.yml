@@ -1,0 +1,40 @@
+name: Build dotnet solution
+
+on:
+  push:
+    branches:
+    - '*'
+  pull_request:
+    branches:
+    - develop
+    - main
+
+jobs:
+  build:
+    name: Build dotnet
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
+
+    - name: Cache dotnet packages
+      uses: actions/cache@v2.1.5
+      with:
+        path: |
+          */obj/project.assets.json
+          */obj/*.csproj.nuget.*
+          .nuget
+        key: dotnet-packages-cache
+
+    - name: Restore dependencies
+      run: dotnet restore --packages .nuget
+
+    - name: Build
+      run: dotnet publish --no-restore -c Release -o build/out/
