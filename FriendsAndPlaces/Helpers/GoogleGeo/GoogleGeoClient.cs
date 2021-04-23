@@ -1,5 +1,6 @@
 ﻿using FriendsAndPlaces.Configuration;
-using FriendsAndPlaces.Models;
+using FriendsAndPlaces.Models.Coordinates;
+using FriendsAndPlaces.Models.GoogleGeo;
 using Newtonsoft.Json;
 using System;
 using System.Net.Http;

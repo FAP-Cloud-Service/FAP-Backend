@@ -1,4 +1,4 @@
-﻿namespace FriendsAndPlaces.Models
+﻿namespace FriendsAndPlaces.Models.GoogleGeo
 {
     public class GoogleGeoResponse
     {
