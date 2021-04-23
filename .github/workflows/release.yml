@@ -1,0 +1,55 @@
+name: Release zip package
+
+on:
+  push:
+    branches:
+    # - master
+    - '*'
+
+jobs:
+  release:
+    name: Release zip package
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
+
+    - name: Cache dotnet packages
+      uses: actions/cache@v2.1.5
+      with:
+        path: |
+          */obj/project.assets.json
+          */obj/*.csproj.nuget.*
+          .nuget
+        key: dotnet-packages-cache
+
+    - name: Restore dependencies
+      run: dotnet restore --packages .nuget
+
+    - name: Build solution
+      run: dotnet publish --no-restore -c Release -o build/out/
+
+    - name: Create zip
+      run: zip -q -r friends-and-places-server.zip build/out/
+
+    - name: Delete latest release
+      uses: ame-yu/action-delete-latest-release@v2
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        body: "Published by Github Actions"
+        name: "Production"
+        tag_name: "prod"
+        files: friends-and-places-server.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
