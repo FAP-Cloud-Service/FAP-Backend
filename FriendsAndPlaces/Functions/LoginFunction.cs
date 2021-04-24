@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using System;
+using System.IO;
 
 namespace FriendsAndPlaces.Functions
 {
@@ -45,20 +46,20 @@ namespace FriendsAndPlaces.Functions
                 return new UnsupportedMediaTypeResult();
             }
 
-            // Read query parameters
-            string loginName = req.Query["loginName"];
-            string password = req.Query["passwort"];
+            // Read request body
+            string requestBody =  new StreamReader(req.Body).ReadToEndAsync().Result;
+            var loginRequest = JsonConvert.DeserializeObject<LoginRequest>(requestBody);
 
             // Check parameters -> HTTP 400
             // Check if all parameters are present
-            if (loginName == null ||
-                password == null)
+            if (loginRequest.LoginName == null ||
+                loginRequest.Password == null)
             {
                 return new BadRequestResult();
             }
 
             // Get user from database
-            var user = _databaseManager.GetUser(loginName);
+            var user = _databaseManager.GetUser(loginRequest.LoginName);
 
             // If user does not exist -> HTTP 401
             if (user == null)
@@ -67,7 +68,7 @@ namespace FriendsAndPlaces.Functions
             }
 
             // Compare passwords and passwords do not match -> HTTP 401
-            if (!password.Equals(user.Password.Password))
+            if (!loginRequest.Password.Equals(user.Password.Password))
             {
                 return new UnauthorizedResult();
             }
@@ -76,7 +77,7 @@ namespace FriendsAndPlaces.Functions
             Guid sessionId = Guid.NewGuid();
 
             // Save session in database
-            bool success = _databaseManager.CreateSession(loginName, sessionId.ToString());
+            bool success = _databaseManager.CreateSession(loginRequest.LoginName, sessionId.ToString());
 
             // Create in Database failed -> HTTP 503
             if (!success)
