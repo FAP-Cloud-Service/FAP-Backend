@@ -2,8 +2,8 @@ name: Build dotnet solution
 
 on:
   push:
-    branches:
-    - '*'
+    branches-ignore:
+    - main
   pull_request:
     branches:
     - develop
