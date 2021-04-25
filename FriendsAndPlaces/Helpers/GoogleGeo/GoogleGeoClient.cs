@@ -38,7 +38,21 @@ namespace FriendsAndPlaces.Helpers.GoogleGeo
                 var googleGeoResponse = JsonConvert.DeserializeObject<GoogleGeoResponse>(response.Content.ReadAsStringAsync().Result);
 
                 // Check Google status code
-                if (googleGeoResponse.Status.Equals("OK"))
+                if ((googleGeoResponse == null) ||
+                    (googleGeoResponse != null &&
+                     string.IsNullOrWhiteSpace(googleGeoResponse.Status)) ||
+                    (googleGeoResponse != null &&
+                     !string.IsNullOrWhiteSpace(googleGeoResponse.Status) &&
+                     !googleGeoResponse.Status.Equals("OK")))
+                {
+                    return null;
+                }
+
+                // Check response content
+                if (googleGeoResponse.Results != null &&
+                   googleGeoResponse.Results[0] != null &&
+                   googleGeoResponse.Results[0].Geometry != null &&
+                   googleGeoResponse.Results[0].Geometry.Location != null)
                 {
                     // Read latitude and longitude and return response object
                     var coordinatesReponse = new CoordinatesResponse()
