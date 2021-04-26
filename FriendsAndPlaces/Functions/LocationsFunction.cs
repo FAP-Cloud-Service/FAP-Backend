@@ -43,8 +43,9 @@ namespace FriendsAndPlaces.Functions
 
             // Check parameters -> HTTP 400
             // Check if all parameters are present
-            if (locationRequest.LoginName == null ||
-                locationRequest.SessionId == null )
+            if (                string.IsNullOrWhiteSpace(locationRequest.LoginName) ||
+                string.IsNullOrWhiteSpace(locationRequest.SessionId) ||
+                locationRequest.Location == null)
             {
                 return new BadRequestResult();
             }
@@ -60,7 +61,7 @@ namespace FriendsAndPlaces.Functions
             }
 
             // Save location in database
-            bool success = _databaseManager.SetLocation(locationRequest.LoginName, locationRequest.Longitude, locationRequest.Latitude);
+            bool success = _databaseManager.SetLocation(locationRequest.LoginName, locationRequest.Location.Longitude, locationRequest.Location.Latitude);
 
             // Write in Database failed -> HTTP 503
             if (!success)
@@ -69,7 +70,6 @@ namespace FriendsAndPlaces.Functions
             }
             
             return new OkResult();
-            
         }
 
         [FunctionName("GetLocation")]
@@ -87,13 +87,14 @@ namespace FriendsAndPlaces.Functions
                 return new UnsupportedMediaTypeResult();
             }
 
-            // Read request body
+            // Read request Header
             string loginName = req.Query["loginName"];
             string sessionId = req.Query["sitzung"];
+
             // Check parameters -> HTTP 400
             // Check if all parameters are present
-            if (loginName == null ||
-                sessionId == null )
+            if (string.IsNullOrWhiteSpace(loginName) ||
+                string.IsNullOrWhiteSpace(sessionId) )
             {
                 return new BadRequestResult();
             }
@@ -124,7 +125,6 @@ namespace FriendsAndPlaces.Functions
 
             //Response with Coordinates
             return new OkObjectResult(JsonConvert.SerializeObject(locationResponse));
-
         }
     }
 }

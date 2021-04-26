@@ -10,7 +10,7 @@ namespace FriendsAndPlaces.Functions
     public class LogoutFunction
     {
         [FunctionName("Logout")]
-        public IActionResult Run(
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {

@@ -6,7 +6,6 @@ namespace FriendsAndPlaces.Models.Locations
     {
         [JsonProperty(PropertyName = "breitengrad")]
         public double Latitude { get; set; }
-
         [JsonProperty(PropertyName = "laengengrad")]
         public double Longitude { get; set; }
 
