@@ -183,7 +183,7 @@ namespace FriendsAndPlaces.Helpers.Database
                     return users.ToArray();
                 }
 
-                return null;
+                return new User[0];
             }
             catch (StorageException e)
             {
