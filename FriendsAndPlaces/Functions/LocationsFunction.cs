@@ -25,7 +25,7 @@ namespace FriendsAndPlaces.Functions
         }
 
         [FunctionName("SetLocation")]
-        public ActionResult SetLocation(
+        public IActionResult SetLocation(
             [HttpTrigger(AuthorizationLevel.Function, "put", Route = null)] HttpRequest req,
             ILogger log)
         {
@@ -73,7 +73,7 @@ namespace FriendsAndPlaces.Functions
         }
 
         [FunctionName("GetLocation")]
-        public ActionResult GetLocation(
+        public IActionResult GetLocation(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
             ILogger log)
         {
