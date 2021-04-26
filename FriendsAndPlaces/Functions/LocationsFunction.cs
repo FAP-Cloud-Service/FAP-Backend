@@ -31,14 +31,6 @@ namespace FriendsAndPlaces.Functions
         {
             log.LogInformation("Incoming SetLocation request.");
 
-            // Check headers -> HTTP 415
-            // Check if Accept: application/json is present 
-            bool acceptHeaderExists = req.Headers.TryGetValue("Accept", out StringValues acceptHeaders);
-            if (acceptHeaderExists && !acceptHeaders[0].Equals(_acceptHeaderApplicationJson))
-            {
-                return new UnsupportedMediaTypeResult();
-            }
-
             // Check if Content-Type: application/json is present 
             bool contentTypeHeaderExists = req.Headers.TryGetValue("Content-Type", out StringValues contentTypeHeaders);
             if (contentTypeHeaderExists && !contentTypeHeaders[0].Equals(_contentTypeHeaderApplicationJson))
@@ -46,17 +38,13 @@ namespace FriendsAndPlaces.Functions
                 return new UnsupportedMediaTypeResult();
             }
 
-            string name = req.Query["name"];
-
             string requestBody = new StreamReader(req.Body).ReadToEndAsync().Result;
             var locationRequest = JsonConvert.DeserializeObject<LocationRequest>(requestBody);
 
             // Check parameters -> HTTP 400
             // Check if all parameters are present
             if (locationRequest.LoginName == null ||
-                locationRequest.SessionId == null ||
-                locationRequest.Latitude == 0 ||
-                locationRequest.Longitude == 0)
+                locationRequest.SessionId == null )
             {
                 return new BadRequestResult();
             }
@@ -75,12 +63,12 @@ namespace FriendsAndPlaces.Functions
             bool success = _databaseManager.SetLocation(locationRequest.LoginName, locationRequest.Longitude, locationRequest.Latitude);
 
             // Write in Database failed -> HTTP 503
-            /*if (!success)
+            if (!success)
             {
                 return new StatusCodeResult(503);
             }
-            */
-            return new CreatedResult("Database", new {LoginName = locationRequest.LoginName, Laengengrad = locationRequest.Longitude, Breitengrad = locationRequest.Latitude });
+            
+            return new OkResult();
             
         }
 
@@ -99,39 +87,28 @@ namespace FriendsAndPlaces.Functions
                 return new UnsupportedMediaTypeResult();
             }
 
-            // Check if Content-Type: application/json is present 
-            bool contentTypeHeaderExists = req.Headers.TryGetValue("Content-Type", out StringValues contentTypeHeaders);
-            if (contentTypeHeaderExists && !contentTypeHeaders[0].Equals(_contentTypeHeaderApplicationJson))
-            {
-                return new UnsupportedMediaTypeResult();
-            }
-
             // Read request body
-            string requestBody = new StreamReader(req.Body).ReadToEndAsync().Result;
-            var locationRequest = JsonConvert.DeserializeObject<LocationRequest>(requestBody);
-
+            string loginName = req.Query["loginName"];
+            string sessionId = req.Query["sitzung"];
             // Check parameters -> HTTP 400
             // Check if all parameters are present
-            if (locationRequest.LoginName == null ||
-                locationRequest.SessionId == null ||
-                locationRequest.Latitude == 0 ||
-                locationRequest.Longitude == 0)
+            if (loginName == null ||
+                sessionId == null )
             {
                 return new BadRequestResult();
             }
 
             // Get user and session from database
-            var user = _databaseManager.GetUser(locationRequest.LoginName);
-            var session = _databaseManager.GetSession(locationRequest.SessionId);
+            var session = _databaseManager.GetSession(loginName);
 
             // If user does not exist or user is not logged in with correct SessionId -> HTTP 401
-            if (user == null || session == null)
+            if (session == null)
             {
                 return new UnauthorizedResult();
             }
 
             // Get Location from Database
-            var location = _databaseManager.GetLocation(locationRequest.LoginName);
+            var location = _databaseManager.GetLocation(loginName);
 
             if (location == null)
             {
@@ -146,7 +123,7 @@ namespace FriendsAndPlaces.Functions
             };
 
             //Response with Coordinates
-            return new OkObjectResult(JsonConvert.SerializeObject(locationResponse, Formatting.Indented));
+            return new OkObjectResult(JsonConvert.SerializeObject(locationResponse));
 
         }
     }
