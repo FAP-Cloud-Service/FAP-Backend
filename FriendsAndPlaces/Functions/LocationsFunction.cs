@@ -43,7 +43,7 @@ namespace FriendsAndPlaces.Functions
 
             // Check parameters -> HTTP 400
             // Check if all parameters are present
-            if (                string.IsNullOrWhiteSpace(locationRequest.LoginName) ||
+            if (string.IsNullOrWhiteSpace(locationRequest.LoginName) ||
                 string.IsNullOrWhiteSpace(locationRequest.SessionId) ||
                 locationRequest.Location == null)
             {
@@ -68,7 +68,7 @@ namespace FriendsAndPlaces.Functions
             {
                 return new StatusCodeResult(503);
             }
-            
+
             return new OkResult();
         }
 
@@ -87,14 +87,16 @@ namespace FriendsAndPlaces.Functions
                 return new UnsupportedMediaTypeResult();
             }
 
-            // Read request Header
-            string loginName = req.Query["loginName"];
-            string sessionId = req.Query["sitzung"];
+            // Read request parameters
+            string loginName = req.Query["login"];
+            string sessionId = req.Query["session"];
+            string userId = req.Query["id"];
 
             // Check parameters -> HTTP 400
             // Check if all parameters are present
             if (string.IsNullOrWhiteSpace(loginName) ||
-                string.IsNullOrWhiteSpace(sessionId) )
+                string.IsNullOrWhiteSpace(sessionId) ||
+                string.IsNullOrWhiteSpace(userId) )
             {
                 return new BadRequestResult();
             }
@@ -109,7 +111,7 @@ namespace FriendsAndPlaces.Functions
             }
 
             // Get Location from Database
-            var location = _databaseManager.GetLocation(loginName);
+            var location = _databaseManager.GetLocation(userId);
 
             if (location == null)
             {
