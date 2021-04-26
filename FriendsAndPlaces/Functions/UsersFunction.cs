@@ -117,7 +117,7 @@ namespace FriendsAndPlaces.Functions
             string savedSession = _databaseManager.GetSession(loginName);
 
             // Session for user does not exist
-            if (savedSession == null)
+            if (string.IsNullOrWhiteSpace(savedSession))
             {
                 return new UnauthorizedResult();
             }
