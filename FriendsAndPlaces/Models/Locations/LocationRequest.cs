@@ -10,7 +10,7 @@ namespace FriendsAndPlaces.Models.Locations
         public string SessionId { get; set; }
 
         [JsonProperty(PropertyName = "standort")]
-        public Location Location { get; set; }
+        public Location[] Location { get; set; }
 
     }
 }
