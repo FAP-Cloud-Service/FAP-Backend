@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using System;
@@ -26,12 +25,9 @@ namespace FriendsAndPlaces.Functions
 
         [FunctionName("Login")]
         public IActionResult Login(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "login")]
+            HttpRequest req)
         {
-            log.LogInformation("Incoming request.");
-
-            // Check headers -> HTTP 415
             // Check if Accept: application/json is present 
             bool acceptHeaderExists = req.Headers.TryGetValue("Accept", out StringValues acceptHeaders);
             if (acceptHeaderExists && !acceptHeaders[0].Equals(_acceptHeaderApplicationJson))
@@ -47,13 +43,12 @@ namespace FriendsAndPlaces.Functions
             }
 
             // Read request body
-            string requestBody =  new StreamReader(req.Body).ReadToEndAsync().Result;
+            string requestBody = new StreamReader(req.Body).ReadToEndAsync().Result;
             var loginRequest = JsonConvert.DeserializeObject<LoginRequest>(requestBody);
 
-            // Check parameters -> HTTP 400
             // Check if all parameters are present
-            if (loginRequest.LoginName == null ||
-                loginRequest.Password == null)
+            if (string.IsNullOrWhiteSpace(loginRequest.LoginName) ||
+                string.IsNullOrWhiteSpace(loginRequest.Password))
             {
                 return new BadRequestResult();
             }
@@ -61,13 +56,13 @@ namespace FriendsAndPlaces.Functions
             // Get user from database
             var user = _databaseManager.GetUser(loginRequest.LoginName);
 
-            // If user does not exist -> HTTP 401
+            // Check if user exists
             if (user == null)
             {
                 return new UnauthorizedResult();
             }
 
-            // Compare passwords and passwords do not match -> HTTP 401
+            // Check if passwords match
             if (!loginRequest.Password.Equals(user.Password.Password))
             {
                 return new UnauthorizedResult();
@@ -79,7 +74,7 @@ namespace FriendsAndPlaces.Functions
             // Save session in database
             bool success = _databaseManager.CreateSession(loginRequest.LoginName, sessionId.ToString());
 
-            // Create in Database failed -> HTTP 503
+            // Check if database action was successful
             if (!success)
             {
                 return new StatusCodeResult(503);
@@ -95,4 +90,3 @@ namespace FriendsAndPlaces.Functions
         }
     }
 }
-
