@@ -1,3 +1,4 @@
+using System.IO;
 using FriendsAndPlaces.Helpers.Database;
 using FriendsAndPlaces.Models.Login;
 using Microsoft.AspNetCore.Http;
@@ -6,6 +7,9 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using FriendsAndPlaces.Models.Logout;
+using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
 
 namespace FriendsAndPlaces.Functions
 {
@@ -16,14 +20,14 @@ namespace FriendsAndPlaces.Functions
         private const string _acceptHeaderApplicationJson = "application/json";
         private const string _contentTypeHeaderApplicationJson = "application/json";
 
-        public LoginFunction(IDatabaseManager databaseManager)
+        public LogoutFunction(IDatabaseManager databaseManager)
         {
             _databaseManager = databaseManager;
         }
 
         [FunctionName("Logout")]
-        public async Task<IActionResult> Logout(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
+        public async Task<IActionResult> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "logout")] HttpRequest req,
             ILogger log)
         {
             log.LogInformation("Incoming logout request.");
@@ -56,7 +60,7 @@ namespace FriendsAndPlaces.Functions
 
             
 
-            _databaseManager.DeleteSession(logoutRequest.LoginName, logoutRequest.SessionId.ToString());
+            _databaseManager.DeleteSession(logoutRequest.LoginName, logoutRequest.SessionId);
 
             // Return 200 no matter what response the database gives
             // => That way we dont reveal whether loginName or session are valid
@@ -64,9 +68,8 @@ namespace FriendsAndPlaces.Functions
 
             var logoutResponse = new LogoutResponse()
             {
-                Message = @"Success! Session revoken (if it existed)";
-                SessionId = logoutRequest.SessionId.ToString();
-            }
+                ergebnis = true
+            };
 
             return new OkObjectResult(JsonConvert.SerializeObject(logoutResponse));
         }

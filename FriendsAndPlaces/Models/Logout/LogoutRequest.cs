@@ -1,5 +1,4 @@
-﻿using System;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace FriendsAndPlaces.Models.Logout
 {
@@ -9,7 +8,7 @@ namespace FriendsAndPlaces.Models.Logout
 		[JsonProperty(PropertyName = "loginName")]
 		public string LoginName { get; set; }
 
-		[JsonProperty(PropertyName = "sessionId")]
+		[JsonProperty(PropertyName = "sitzung")]
 		public string SessionId{ get; set; }
 
 	}
