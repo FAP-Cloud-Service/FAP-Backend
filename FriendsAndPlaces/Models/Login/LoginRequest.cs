@@ -2,7 +2,7 @@
 
 namespace FriendsAndPlaces.Models.Login
 {
-    class LoginRequest
+    public class LoginRequest
     {
         public string LoginName { get; set; }
 
