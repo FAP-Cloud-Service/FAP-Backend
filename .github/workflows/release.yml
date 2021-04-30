@@ -36,7 +36,7 @@ jobs:
       run: dotnet publish --no-restore -c Release -o build/out/
 
     - name: Create zip
-      run: zip -q -r friends-and-places-server.zip build/out/
+      run: cd build/out/ && zip -q -r friends-and-places-server.zip * && mv friends-and-places-server.zip ../../
 
     - name: Delete latest release
       uses: ame-yu/action-delete-latest-release@v2
