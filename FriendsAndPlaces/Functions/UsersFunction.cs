@@ -148,7 +148,7 @@ namespace FriendsAndPlaces.Functions
                 });
             }
 
-            return new OkObjectResult(JsonConvert.SerializeObject(publicUsers));
+            return new OkObjectResult(publicUsers);
         }
     }
 }

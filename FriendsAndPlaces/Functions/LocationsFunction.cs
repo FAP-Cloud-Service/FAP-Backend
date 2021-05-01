@@ -96,7 +96,7 @@ namespace FriendsAndPlaces.Functions
             // Check if all parameters are present
             if (string.IsNullOrWhiteSpace(loginName) ||
                 string.IsNullOrWhiteSpace(sessionId) ||
-                string.IsNullOrWhiteSpace(userId) )
+                string.IsNullOrWhiteSpace(userId))
             {
                 return new BadRequestResult();
             }
@@ -126,7 +126,7 @@ namespace FriendsAndPlaces.Functions
             };
 
             //Response with Coordinates
-            return new OkObjectResult(JsonConvert.SerializeObject(locationResponse));
+            return new OkObjectResult(locationResponse);
         }
     }
 }

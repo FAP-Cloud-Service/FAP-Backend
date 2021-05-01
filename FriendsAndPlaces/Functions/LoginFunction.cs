@@ -86,7 +86,7 @@ namespace FriendsAndPlaces.Functions
                 SessionId = sessionId.ToString()
             };
 
-            return new OkObjectResult(JsonConvert.SerializeObject(loginResponse));
+            return new OkObjectResult(loginResponse);
         }
     }
 }

@@ -1,15 +1,14 @@
-using System.IO;
 using FriendsAndPlaces.Helpers.Database;
-using FriendsAndPlaces.Models.Login;
+using FriendsAndPlaces.Models.Logout;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using FriendsAndPlaces.Models.Logout;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace FriendsAndPlaces.Functions
 {
@@ -45,7 +44,7 @@ namespace FriendsAndPlaces.Functions
                 return new UnsupportedMediaTypeResult();
             }
 
-            string requestBody =  new StreamReader(req.Body).ReadToEndAsync().Result;
+            string requestBody = new StreamReader(req.Body).ReadToEndAsync().Result;
             var logoutRequest = JsonConvert.DeserializeObject<LogoutRequest>(requestBody);
 
 
@@ -55,10 +54,10 @@ namespace FriendsAndPlaces.Functions
             {
                 return new BadRequestResult();
             }
-            
+
             // Delete session from database
 
-            
+
 
             _databaseManager.DeleteSession(logoutRequest.LoginName, logoutRequest.SessionId);
 
@@ -71,7 +70,7 @@ namespace FriendsAndPlaces.Functions
                 ergebnis = true
             };
 
-            return new OkObjectResult(JsonConvert.SerializeObject(logoutResponse));
+            return new OkObjectResult(logoutResponse);
         }
     }
 }
