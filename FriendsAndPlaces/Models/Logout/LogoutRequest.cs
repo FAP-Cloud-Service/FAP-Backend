@@ -2,14 +2,12 @@
 
 namespace FriendsAndPlaces.Models.Logout
 {
+    public class LogoutRequest
+    {
+        [JsonProperty(PropertyName = "loginName")]
+        public string LoginName { get; set; }
 
-	public class LogoutRequest
-	{
-		[JsonProperty(PropertyName = "loginName")]
-		public string LoginName { get; set; }
-
-		[JsonProperty(PropertyName = "sitzung")]
-		public string SessionId{ get; set; }
-
-	}
+        [JsonProperty(PropertyName = "sitzung")]
+        public string SessionId { get; set; }
+    }
 }
