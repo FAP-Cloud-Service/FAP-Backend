@@ -20,8 +20,7 @@ namespace FriendsAndPlaces.Functions
 
         [FunctionName("Coordinates")]
         public IActionResult GetCoordinates(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "coordinates")]
-            HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "coordinates")] HttpRequest req)
         {
             // Check if Accept: application/json is present 
             bool acceptHeaderExists = req.Headers.TryGetValue("Accept", out StringValues acceptHeaders);
@@ -51,7 +50,7 @@ namespace FriendsAndPlaces.Functions
             // Check if location was found
             if (coordinatesResponse == null)
             {
-                return new NotFoundResult();
+                return new NoContentResult();
             }
 
             return new OkObjectResult(coordinatesResponse);

@@ -7,8 +7,8 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using System;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace FriendsAndPlaces.Functions
 {
@@ -25,12 +25,9 @@ namespace FriendsAndPlaces.Functions
         }
 
         [FunctionName("Logout")]
-        public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "logout")] HttpRequest req,
-            ILogger log)
+        public IActionResult Logout(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "logout")] HttpRequest req, ILogger log)
         {
-            log.LogInformation("Incoming logout request.");
-
             // Check headers -> HTTP 415
             bool acceptHeaderExists = req.Headers.TryGetValue("Accept", out StringValues acceptHeaders);
             if (acceptHeaderExists && !acceptHeaders[0].Equals(_acceptHeaderApplicationJson))
@@ -44,34 +41,38 @@ namespace FriendsAndPlaces.Functions
                 return new UnsupportedMediaTypeResult();
             }
 
-            string requestBody = new StreamReader(req.Body).ReadToEndAsync().Result;
-            var logoutRequest = JsonConvert.DeserializeObject<LogoutRequest>(requestBody);
-
+            // Read request body
+            LogoutRequest logoutRequest;
+            try
+            {
+                string requestBody = new StreamReader(req.Body).ReadToEndAsync().Result;
+                logoutRequest = JsonConvert.DeserializeObject<LogoutRequest>(requestBody);
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.Message);
+                return new BadRequestResult();
+            }
 
             // Check body -> HTTP 400
-            if (logoutRequest.LoginName == null ||
-                logoutRequest.SessionId == null)
+            if (string.IsNullOrWhiteSpace(logoutRequest.LoginName) ||
+                string.IsNullOrWhiteSpace(logoutRequest.SessionId))
             {
                 return new BadRequestResult();
             }
 
             // Delete session from database
-
-
-
             _databaseManager.DeleteSession(logoutRequest.LoginName, logoutRequest.SessionId);
 
             // Return 200 no matter what response the database gives
-            // => That way we dont reveal whether loginName or session are valid
-            // => e.g. "Success! Session revoken (if it existed)"
+            // => That way we don't reveal whether loginName or session are valid
 
             var logoutResponse = new LogoutResponse()
             {
-                ergebnis = true
+                Result = true
             };
 
             return new OkObjectResult(logoutResponse);
         }
     }
 }
-

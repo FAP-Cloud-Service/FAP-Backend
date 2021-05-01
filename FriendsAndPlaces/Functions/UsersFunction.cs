@@ -7,6 +7,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -26,8 +27,7 @@ namespace FriendsAndPlaces.Functions
 
         [FunctionName("CheckUsername")]
         public IActionResult CheckUsername(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "users/available")] HttpRequest req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "users/available")] HttpRequest req)
         {
             // Get query parameter
             string loginName = req.Query["id"];
@@ -43,20 +43,19 @@ namespace FriendsAndPlaces.Functions
 
             if (user == null)
             {
-                // loginName is available
+                // LoginName is available
                 return new OkObjectResult(new AvailabilityResponse() { Result = true });
             }
             else
             {
-                // loginName is already taken
+                // LoginName is already taken
                 return new OkObjectResult(new AvailabilityResponse() { Result = false });
             }
         }
 
         [FunctionName("CreateUser")]
         public IActionResult CreateUser(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "users/new")] HttpRequest req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "users/new")] HttpRequest req, ILogger log)
         {
             // Check if Content-Type: application/json is present 
             bool contentTypeHeaderExists = req.Headers.TryGetValue("Content-Type", out StringValues contentTypeHeaders);
@@ -66,8 +65,17 @@ namespace FriendsAndPlaces.Functions
             }
 
             // Read request body
-            string requestBody = new StreamReader(req.Body).ReadToEndAsync().Result;
-            var user = JsonConvert.DeserializeObject<User>(requestBody);
+            User user;
+            try
+            {
+                string requestBody = new StreamReader(req.Body).ReadToEndAsync().Result;
+                user = JsonConvert.DeserializeObject<User>(requestBody);
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.Message);
+                return new BadRequestResult();
+            }
 
             // Check if key properties are missing
             if (user == null ||
@@ -76,6 +84,15 @@ namespace FriendsAndPlaces.Functions
                 string.IsNullOrEmpty(user.Password.Password))
             {
                 return new BadRequestResult();
+            }
+
+            // Check if user already exists
+            var existingUser = _databaseManager.GetUser(user.LoginName);
+
+            if (existingUser != null)
+            {
+                // LoginName is already taken
+                return new BadRequestObjectResult($"Username {user.LoginName} is already taken.");
             }
 
             // Create user in database
@@ -87,13 +104,12 @@ namespace FriendsAndPlaces.Functions
                 return new StatusCodeResult(503);
             }
 
-            return new OkResult();
+            return new CreatedResult($"{user.LoginName}", null);
         }
 
         [FunctionName("GetAllUsers")]
         public IActionResult GetAllUsers(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "users")] HttpRequest req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "users")] HttpRequest req)
         {
             // Check if Accept: application/json is present 
             bool acceptHeaderExists = req.Headers.TryGetValue("Accept", out StringValues acceptHeaders);
@@ -133,7 +149,7 @@ namespace FriendsAndPlaces.Functions
 
             if (users == null)
             {
-                return new NotFoundResult();
+                return new NoContentResult();
             }
 
             // Convert users to publicUser objects
@@ -152,4 +168,3 @@ namespace FriendsAndPlaces.Functions
         }
     }
 }
-
