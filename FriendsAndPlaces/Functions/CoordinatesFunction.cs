@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Primitives;
-using Newtonsoft.Json;
 
 namespace FriendsAndPlaces.Functions
 {
@@ -54,7 +53,7 @@ namespace FriendsAndPlaces.Functions
                 return new NoContentResult();
             }
 
-            return new OkObjectResult(JsonConvert.SerializeObject(coordinatesResponse));
+            return new OkObjectResult(coordinatesResponse);
         }
     }
 }

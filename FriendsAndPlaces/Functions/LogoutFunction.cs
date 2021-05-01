@@ -72,7 +72,7 @@ namespace FriendsAndPlaces.Functions
                 Result = true
             };
 
-            return new OkObjectResult(JsonConvert.SerializeObject(logoutResponse));
+            return new OkObjectResult(logoutResponse);
         }
     }
 }

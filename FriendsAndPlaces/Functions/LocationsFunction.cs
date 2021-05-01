@@ -133,7 +133,7 @@ namespace FriendsAndPlaces.Functions
             };
 
             //Response with Coordinates
-            return new OkObjectResult(JsonConvert.SerializeObject(locationResponse));
+            return new OkObjectResult(locationResponse);
         }
     }
 }
