@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using FriendsAndPlaces.Models.Users;
+using Newtonsoft.Json;
 
 namespace FriendsAndPlaces.Models.Login
 {
@@ -7,6 +8,6 @@ namespace FriendsAndPlaces.Models.Login
         public string LoginName { get; set; }
 
         [JsonProperty(PropertyName = "passwort")]
-        public string Password { get; set; }
+        public PasswordWrapper Password { get; set; }
     }
 }
