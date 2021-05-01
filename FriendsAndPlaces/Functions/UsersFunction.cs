@@ -164,7 +164,13 @@ namespace FriendsAndPlaces.Functions
                 });
             }
 
-            return new OkObjectResult(publicUsers);
+            // Create return object
+            var usersResponse = new UsersResponse()
+            {
+                Users = publicUsers.ToArray()
+            };
+
+            return new OkObjectResult(usersResponse);
         }
     }
 }

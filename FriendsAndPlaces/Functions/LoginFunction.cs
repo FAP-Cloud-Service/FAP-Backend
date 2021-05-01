@@ -57,7 +57,8 @@ namespace FriendsAndPlaces.Functions
 
             // Check if all parameters are present
             if (string.IsNullOrWhiteSpace(loginRequest.LoginName) ||
-                string.IsNullOrWhiteSpace(loginRequest.Password))
+                loginRequest.Password == null ||
+                string.IsNullOrWhiteSpace(loginRequest.Password.Password))
             {
                 return new BadRequestResult();
             }
@@ -72,7 +73,7 @@ namespace FriendsAndPlaces.Functions
             }
 
             // Check if passwords match
-            if (!loginRequest.Password.Equals(user.Password.Password))
+            if (!loginRequest.Password.Password.Equals(user.Password.Password))
             {
                 return new UnauthorizedResult();
             }
