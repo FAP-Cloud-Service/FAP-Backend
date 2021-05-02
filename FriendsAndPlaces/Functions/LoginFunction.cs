@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using System;
@@ -25,8 +26,7 @@ namespace FriendsAndPlaces.Functions
 
         [FunctionName("Login")]
         public IActionResult Login(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "login")]
-            HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "login")] HttpRequest req, ILogger log)
         {
             // Check if Accept: application/json is present 
             bool acceptHeaderExists = req.Headers.TryGetValue("Accept", out StringValues acceptHeaders);
@@ -43,12 +43,22 @@ namespace FriendsAndPlaces.Functions
             }
 
             // Read request body
-            string requestBody = new StreamReader(req.Body).ReadToEndAsync().Result;
-            var loginRequest = JsonConvert.DeserializeObject<LoginRequest>(requestBody);
+            LoginRequest loginRequest;
+            try
+            {
+                string requestBody = new StreamReader(req.Body).ReadToEndAsync().Result;
+                loginRequest = JsonConvert.DeserializeObject<LoginRequest>(requestBody);
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.Message);
+                return new BadRequestResult();
+            }
 
             // Check if all parameters are present
             if (string.IsNullOrWhiteSpace(loginRequest.LoginName) ||
-                string.IsNullOrWhiteSpace(loginRequest.Password))
+                loginRequest.Password == null ||
+                string.IsNullOrWhiteSpace(loginRequest.Password.Password))
             {
                 return new BadRequestResult();
             }
@@ -63,7 +73,7 @@ namespace FriendsAndPlaces.Functions
             }
 
             // Check if passwords match
-            if (!loginRequest.Password.Equals(user.Password.Password))
+            if (!loginRequest.Password.Password.Equals(user.Password.Password))
             {
                 return new UnauthorizedResult();
             }
@@ -86,7 +96,7 @@ namespace FriendsAndPlaces.Functions
                 SessionId = sessionId.ToString()
             };
 
-            return new OkObjectResult(JsonConvert.SerializeObject(loginResponse));
+            return new OkObjectResult(loginResponse);
         }
     }
 }

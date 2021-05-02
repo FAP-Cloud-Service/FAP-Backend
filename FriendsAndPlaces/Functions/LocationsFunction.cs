@@ -8,6 +8,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using System;
 using System.IO;
 
 namespace FriendsAndPlaces.Functions
@@ -26,11 +27,8 @@ namespace FriendsAndPlaces.Functions
 
         [FunctionName("SetLocation")]
         public IActionResult SetLocation(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = null)] HttpRequest req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "setlocation")] HttpRequest req, ILogger log)
         {
-            log.LogInformation("Incoming SetLocation request.");
-
             // Check if Content-Type: application/json is present 
             bool contentTypeHeaderExists = req.Headers.TryGetValue("Content-Type", out StringValues contentTypeHeaders);
             if (contentTypeHeaderExists && !contentTypeHeaders[0].Equals(_contentTypeHeaderApplicationJson))
@@ -38,8 +36,18 @@ namespace FriendsAndPlaces.Functions
                 return new UnsupportedMediaTypeResult();
             }
 
-            string requestBody = new StreamReader(req.Body).ReadToEndAsync().Result;
-            var locationRequest = JsonConvert.DeserializeObject<LocationRequest>(requestBody);
+            // Read request body
+            LocationRequest locationRequest;
+            try
+            {
+                string requestBody = new StreamReader(req.Body).ReadToEndAsync().Result;
+                locationRequest = JsonConvert.DeserializeObject<LocationRequest>(requestBody);
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.Message);
+                return new BadRequestResult();
+            }
 
             // Check parameters -> HTTP 400
             // Check if all parameters are present
@@ -52,10 +60,12 @@ namespace FriendsAndPlaces.Functions
 
             // Get user and session from database
             var user = _databaseManager.GetUser(locationRequest.LoginName);
-            var session = _databaseManager.GetSession(locationRequest.SessionId);
+            var session = _databaseManager.GetSession(locationRequest.LoginName);
 
-            // If user does not exist or user is not logged in with correct SessionId -> HTTP 401
-            if (user == null || session == null)
+            // If user does not exist or session is invalid -> HTTP 401
+            if (user == null ||
+                string.IsNullOrWhiteSpace(session) ||
+                locationRequest.SessionId != session)
             {
                 return new UnauthorizedResult();
             }
@@ -74,11 +84,8 @@ namespace FriendsAndPlaces.Functions
 
         [FunctionName("GetLocation")]
         public IActionResult GetLocation(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "location")] HttpRequest req)
         {
-            log.LogInformation("Incoming GetLocation request.");
-
             // Check headers -> HTTP 415
             // Check if Accept: application/json is present 
             bool acceptHeaderExists = req.Headers.TryGetValue("Accept", out StringValues acceptHeaders);
@@ -96,7 +103,7 @@ namespace FriendsAndPlaces.Functions
             // Check if all parameters are present
             if (string.IsNullOrWhiteSpace(loginName) ||
                 string.IsNullOrWhiteSpace(sessionId) ||
-                string.IsNullOrWhiteSpace(userId) )
+                string.IsNullOrWhiteSpace(userId))
             {
                 return new BadRequestResult();
             }
@@ -105,7 +112,7 @@ namespace FriendsAndPlaces.Functions
             var session = _databaseManager.GetSession(loginName);
 
             // If user does not exist or user is not logged in with correct SessionId -> HTTP 401
-            if (session == null)
+            if (string.IsNullOrWhiteSpace(session))
             {
                 return new UnauthorizedResult();
             }
@@ -115,7 +122,7 @@ namespace FriendsAndPlaces.Functions
 
             if (location == null)
             {
-                return new BadRequestResult();
+                return new NoContentResult();
             }
 
             //Formatting of Response to Coordinates
@@ -126,8 +133,7 @@ namespace FriendsAndPlaces.Functions
             };
 
             //Response with Coordinates
-            return new OkObjectResult(JsonConvert.SerializeObject(locationResponse));
+            return new OkObjectResult(locationResponse);
         }
     }
 }
-
