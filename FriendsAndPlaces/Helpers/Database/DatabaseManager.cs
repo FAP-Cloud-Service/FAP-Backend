@@ -344,7 +344,7 @@ namespace FriendsAndPlaces.Helpers.Database
                 // Execute the operation
                 var result = ExecuteOperation(cloudTable, tableOperation);
 
-                if (result.HttpStatusCode == 200)
+                if (result.HttpStatusCode == 204)
                 {
                     return true;
                 }
