@@ -1,6 +1,7 @@
 using FriendsAndPlaces.Configuration;
 using FriendsAndPlaces.Helpers.Database;
 using FriendsAndPlaces.Helpers.GoogleGeo;
+using FriendsAndPlaces.Helpers.Hashing;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -37,6 +38,7 @@ namespace FriendsAndPlaces
             builder.Services.AddSingleton(databaseConfiguration);
             builder.Services.AddSingleton(googleGeoConfiguration);
             builder.Services.AddSingleton<IDatabaseManager, DatabaseManager>();
+            builder.Services.AddSingleton<IHashManager, HashManager>();
 
             builder.Services.AddScoped<IGoogleGeoClient, GoogleGeoClient>();
         }

@@ -1,4 +1,5 @@
 using FriendsAndPlaces.Helpers.Database;
+using FriendsAndPlaces.Helpers.Hashing;
 using FriendsAndPlaces.Models.Login;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,13 +15,15 @@ namespace FriendsAndPlaces.Functions
 {
     public class LoginFunction
     {
+        private readonly IHashManager _hashManager;
         private readonly IDatabaseManager _databaseManager;
 
         private const string _acceptHeaderApplicationJson = "application/json";
         private const string _contentTypeHeaderApplicationJson = "application/json";
 
-        public LoginFunction(IDatabaseManager databaseManager)
+        public LoginFunction(IHashManager hashManager, IDatabaseManager databaseManager)
         {
+            _hashManager = hashManager;
             _databaseManager = databaseManager;
         }
 
@@ -72,8 +75,11 @@ namespace FriendsAndPlaces.Functions
                 return new UnauthorizedResult();
             }
 
-            // Check if passwords match
-            if (!loginRequest.Password.Password.Equals(user.Password.Password))
+            // Get password hash
+            string hashedPassword = _hashManager.HashString(loginRequest.Password.Password);
+
+            // Check if password hashes match
+            if (!hashedPassword.Equals(user.Password.Password))
             {
                 return new UnauthorizedResult();
             }
