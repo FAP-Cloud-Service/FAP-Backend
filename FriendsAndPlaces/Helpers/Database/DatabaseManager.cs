@@ -1,4 +1,5 @@
 ﻿using FriendsAndPlaces.Configuration;
+using FriendsAndPlaces.Helpers.Hashing;
 using FriendsAndPlaces.Models.Coordinates;
 using FriendsAndPlaces.Models.Entities;
 using FriendsAndPlaces.Models.Users;
@@ -10,14 +11,16 @@ namespace FriendsAndPlaces.Helpers.Database
 {
     public class DatabaseManager : IDatabaseManager
     {
+        private readonly IHashManager _hashManager;
         private readonly CloudStorageAccount _cloudStorageAccount;
 
         private const string USERS_TABLE_NAME = "users";
         private const string SESSIONS_TABLE_NAME = "sessions";
         private const string LOCATIONS_TABLE_NAME = "locations";
 
-        public DatabaseManager(DatabaseConfiguration configuration)
+        public DatabaseManager(IHashManager hashManager, DatabaseConfiguration configuration)
         {
+            _hashManager = hashManager;
             _cloudStorageAccount = CreateStorageAccountFromConnectionString(configuration.ConnectionString);
         }
 
@@ -41,7 +44,7 @@ namespace FriendsAndPlaces.Helpers.Database
                 var userEntity = new UserEntity(user.LoginName)
                 {
                     LoginName = user.LoginName,
-                    Password = user.Password.Password,
+                    Password = _hashManager.HashString(user.Password.Password),
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Street = user.Street,
